@@ -3,14 +3,9 @@
 # ---------------------------------------------------------------------------- #
 #                               DEFAULT VARIABLES                              #
 # ---------------------------------------------------------------------------- #
-DATA_DIR_DEFAULT="/media/art-berk/DRIVE2_ART/rosbags/"
-VERBOSE_DEFAULT=0
-UNDISTORT_DEFAULT=1
-# CALIB_DIR_DEFAULT="/home/roar/ART/perception/Camera/Calibration_new/"
-CALIB_DIR_DEFAULT="/home/art-berk/IAC_dataset_maker/putnam_calib/"
-OUTPUT_BASE_DIR_DEFAULT="/home/art-berk/IAC_dataset_maker/output/"
-MAKE_VID_DEFAULT=1
-USE_COMPRESSED_DEFAULT=0
+# Load data_maker.env file
+source data_maker.env
+echo "Loaded data_maker.env file to set default variables"
 
 # ---------------------------------------------------------------------------- #
 #                          PARSE ENVIRONMENT VARIABLES                         #
@@ -150,31 +145,39 @@ while IFS= read -r line; do
     # ------------------ Begin Extraction Based on User Setting ------------------ #
     cd "$root_dir"
     
-    if [ $VERBOSE -eq 1 ]; then
+    if [ $VERBOSE -arangeeq 1 ]; then
         if [ $UNDISTORT -eq 1 ]; then
             if [ $USE_COMPRESSED -eq 1 ]; then
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -vucp $CALIB_DIR"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR" -vucp "$CALIB_DIR"
             else 
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -vup $CALIB_DIR"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR" -vup "$CALIB_DIR"
             fi
         else 
             if [ $USE_COMPRESSED -eq 1 ]; then
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -vc"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR" -vc
             else
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -v"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR" -v
             fi
         fi
     else
         if [ $UNDISTORT -eq 1 ]; then
             if [ $USE_COMPRESSED -eq 1 ]; then
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -ucp $CALIB_DIR"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR" -ucp "$CALIB_DIR"
             else 
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -up $CALIB_DIR"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR" -up "$CALIB_DIR"
             fi
         else
             if [ $USE_COMPRESSED -eq 1 ]; then
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -c"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR" -c
             else
+                echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR"
                 python3 ros2bag_image_extractor.py "$line" "$OUTPUT_DIR"
             fi
         fi

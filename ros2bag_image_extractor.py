@@ -7,6 +7,7 @@ import os
 import sys
 import argparse
 import yaml
+import subprocess
 
 # ----------------------------- Common Libraries ----------------------------- #
 import numpy as np
@@ -18,8 +19,6 @@ import rosbag2_py
 
 from rclpy.serialization import deserialize_message
 from rosidl_runtime_py.utilities import get_message
-
-
 
 # ---------------------------------------------------------------------------- #
 #                                   Functions                                  #
@@ -65,7 +64,7 @@ arg_parser  = argparse.ArgumentParser(description='Extracts Images from ROS2 Bag
 arg_parser.add_argument('rosbag_file_path', help='Path to rosbag to extract the data from', type=dir_path)
 arg_parser.add_argument('output_dir', help='Path to directory where extracted data should be stored', type=dir_path)
 arg_parser.add_argument('-u', "--undistort", action="store_true")
-arg_parser.add_argument('-c', "--compressed", action="store_false")
+arg_parser.add_argument('-c', "--compressed", action="store_true")
 arg_parser.add_argument('-p', '--camera_info_path', help="Path to folder containing yaml config files for camera info for all cameras", type=dir_path)
 arg_parser.add_argument('-v', "--verbose", action="store_true")
 
@@ -109,7 +108,7 @@ for file in files:
         store_type = "mcap"
         print("[script] Detected Input bag is a mcap file.")
 if not store_type:
-    print(f"[script] FATAL ERROR: Input bag is not a db3 or mcap file")
+    print("[script] FATAL ERROR: Input bag is not a db3 or mcap file")
     exit()
 
 reader = rosbag2_py.SequentialReader()
@@ -135,32 +134,33 @@ if args.compressed:
     image_topics = {
         '/vimba_front_left_center/image/compressed',
         '/vimba_front_right_center/image/compressed',
-        '/vimba_front_left/image/compressed', 
-        '/vimba_front_right/image/compressed',        
-        '/vimba_rear_left/image/compressed',       
-        '/vimba_rear_right/image/compressed',   
-        '/vimba_rear_left/image'            ,
-        '/vimba_rear_right/image'           ,
-        '/vimba_front_left/image'           ,
-        '/vimba_front_left_center/image'    ,
-        '/vimba_front_right_center/image'   ,
-        '/vimba_front_right/image'          
+        '/vimba_front/image/compressed',
+        '/vimba_left/image/compressed', 
+        '/vimba_right/image/compressed',        
+        '/vimba_rear/image/compressed',       
+        '/vimba_rear/image',
+        '/vimba_front_left/image',
+        '/vimba_front_left_center/image',
+        '/vimba_front/image',
+        '/vimba_right_center/image',
+        '/vimba_right/image'          
     }
 else:
     image_topics = {
-        '/vimba_rear_left/image'            ,
-        '/vimba_rear_right/image'           ,
-        '/vimba_front_left/image'           ,
-        '/vimba_front_left_center/image'    ,
-        '/vimba_front_right_center/image'   ,
-        '/vimba_front_right/image'          
+        #'/vimba_rear/image',
+        #'/vimba_left/image',
+        '/vimba_front/image',
+        #'/vimba_front_left_center/image',
+        #'/vimba_front_right_center/image',
+        #'/vimba_right/image'          
     }
-
 
 TOPIC_TYPES = reader.get_all_topics_and_types()
 TYPE_MAP = {TOPIC_TYPES[i].name: TOPIC_TYPES[i].type for i in range(len(TOPIC_TYPES))}
 
 iterator = dict()
+
+# ---------------------------- Initialize Iterator --------------------------- #
 
 # Initialize an iterator based on whether or not the topic is in the rosbag
 for t in TYPE_MAP:
@@ -172,6 +172,28 @@ if len(iterator) == 0:
     # If no camera topics are found, close the ROSBAG and return. TODO: Check if ffmpeg is happy about this
     del reader
     exit()
+
+# ---------------------------- Print Number of Images ------- ---------------- #
+
+# Print number of images to be extracted on each topic
+def print_num_images(rosbag_file_path : str, image_topics : set):
+    '''
+    Prints the number of images to be extracted from each topic in the rosbag file
+    '''
+    # Run the rosbag info command and capture the output
+    result = subprocess.run(['rosbag', 'info', rosbag_file_path], stdout=subprocess.PIPE, text=True)
+
+    # Process each line of the output
+    for line in result.stdout.splitlines():
+        # Check if the line contains the topic name
+        for topic in image_topics:
+            # Extract the number of messages from the line
+            num_images = int(line.split()[1])
+            print(f"Number of Images to be extracted from {topic}: {num_images}")
+
+print_num_images(ROSBAG_FILE_PATH, image_topics)
+
+# ---------------------------- Extract Images ------------------------------- #
 
 counter = 0
 
@@ -224,7 +246,6 @@ while reader.has_next():
             cv2_msg = undistort(cv2_msg, distortion_dict[topic_name[1:-6]])
 
         # Save Image
-        
 
         if args.verbose:
             print('Saving ' + output_file_path)
@@ -234,6 +255,6 @@ while reader.has_next():
 
         if not cv2.imwrite(output_file_path, cv2_msg):
             raise Exception("Could not write image")
-        
+  
 # Close the bag file
 del reader
