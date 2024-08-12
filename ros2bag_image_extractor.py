@@ -132,27 +132,27 @@ except Exception as e:
 if args.compressed:
 
     image_topics = {
-        '/vimba_front_left_center/image/compressed',
-        '/vimba_front_right_center/image/compressed',
+        # '/vimba_front_left_center/image/compressed',
+        # '/vimba_front_right_center/image/compressed',
         '/vimba_front/image/compressed',
         '/vimba_left/image/compressed', 
         '/vimba_right/image/compressed',        
         '/vimba_rear/image/compressed',       
         '/vimba_rear/image',
         '/vimba_front_left/image',
-        '/vimba_front_left_center/image',
+        # '/vimba_front_left_center/image',
         '/vimba_front/image',
-        '/vimba_right_center/image',
+        # '/vimba_right_center/image',
         '/vimba_right/image'          
     }
 else:
     image_topics = {
-        #'/vimba_rear/image',
-        #'/vimba_left/image',
+        '/vimba_rear/image',
+        '/vimba_left/image',
         '/vimba_front/image',
-        #'/vimba_front_left_center/image',
-        #'/vimba_front_right_center/image',
-        #'/vimba_right/image'          
+        # '/vimba_front_left_center/image',
+        # '/vimba_front_right_center/image',
+        '/vimba_right/image'          
     }
 
 TOPIC_TYPES = reader.get_all_topics_and_types()
