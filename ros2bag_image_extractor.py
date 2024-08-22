@@ -8,6 +8,7 @@ import sys
 import argparse
 import yaml
 import subprocess
+from tqdm import tqdm
 
 # ----------------------------- Common Libraries ----------------------------- #
 import numpy as np
@@ -175,23 +176,58 @@ if len(iterator) == 0:
 
 # ---------------------------- Print Number of Images ------- ---------------- #
 
-# Print number of images to be extracted on each topic
-def print_num_images(rosbag_file_path : str, image_topics : set):
+# # Print number of images to be extracted on each topic
+# def print_num_images(rosbag_file_path : str, image_topics : set):
+#     '''
+#     Prints the number of images to be extracted from each topic in the rosbag file
+#     '''
+#     # Run the rosbag info command and capture the output
+#     result = subprocess.run(['rosbag', 'info', rosbag_file_path], stdout=subprocess.PIPE, text=True)
+
+#     # Process each line of the output
+#     for line in tqdm(result.stdout.splitlines(), "going through messages..."):
+#         # Check if the line contains the topic name
+#         for topic in image_topics:
+#             # Extract the number of messages from the line
+#             num_images = int(line.split()[1])
+#             print(f"Number of Images to be extracted from {topic}: {num_images}")
+def print_num_images(rosbag_file_path: str, image_topics: set):
     '''
     Prints the number of images to be extracted from each topic in the rosbag file
     '''
-    # Run the rosbag info command and capture the output
-    result = subprocess.run(['rosbag', 'info', rosbag_file_path], stdout=subprocess.PIPE, text=True)
+    # Instead of using rosbag info, use the reader to count messages per topic
+    print("Counting images directly using rosbag2_py API...")
+    try:
+        topic_dict = {}
+        for topic in tqdm(image_topics, "going through image topics: "):
+            topic_dict[topic] = 0
+        total_messages = 0
+        
+       
+        reader = rosbag2_py.SequentialReader()
+        reader.open(
+            rosbag2_py.StorageOptions(uri=rosbag_file_path, storage_id=store_type),
+            rosbag2_py.ConverterOptions(
+                input_serialization_format="cdr", output_serialization_format="cdr"
+            ),
+        )
+      
+  
+        while reader.has_next():
+                t_name, data, timestamp = reader.read_next()
+                if t_name in topic_dict:
+                    topic_dict[t_name] += 1
+                for topic, topic_count in topic_dict.items():
+                    print(f"\r{topic_dict}", end="")
+                    sys.stdout.flush()
+        for topic, topic_count in topic_dict.items():
+            print(f"Number of Images to be extracted from {topic}: {topic_count}")
+    except Exception as e:
+        print(f"Error counting images: {e}")
+        exit()
 
-    # Process each line of the output
-    for line in result.stdout.splitlines():
-        # Check if the line contains the topic name
-        for topic in image_topics:
-            # Extract the number of messages from the line
-            num_images = int(line.split()[1])
-            print(f"Number of Images to be extracted from {topic}: {num_images}")
 
-print_num_images(ROSBAG_FILE_PATH, image_topics)
+# print_num_images(ROSBAG_FILE_PATH, image_topics)
 
 # ---------------------------- Extract Images ------------------------------- #
 
