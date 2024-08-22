@@ -183,23 +183,27 @@ while IFS= read -r line; do
         fi
     fi
 
+    echo "Converting images to video... for $OUTPUT_DIR"
+    cd $OUTPUT_DIR
     # --------------------- Convert Extracted Images to Video -------------------- #
-    if [ ! -d "$OUTPUT_DIR" ] || [ -z "$(ls -A $OUTPUT_DIR)" ]; then # Check if the output directory is not empty first
-        if [ $MAKE_VID -eq 1 ]; then
+    if [[ -d "$OUTPUT_DIR" ]] && [[ -n "$(ls -A "$OUTPUT_DIR")" ]]; then
+        # Check if the output directory exists and is not empty
+        if [[ $MAKE_VID -eq 1 ]]; then
+
             for camera_output_dir in "$OUTPUT_DIR"/*/; do
                 base_name=$(basename "$camera_output_dir")
-
-                # Ah, that narrows things down a bit. The behavior you're seeing could be related to ffmpeg inadvertently reading from standard input, which affects the subsequent iterations of the loop that reads from /tmp/tempfile.txt.
-                # Here's a solution: redirect the standard input of ffmpeg to /dev/null. This ensures that ffmpeg won't interfere with the input being read by the loop.
-                # Modify the ffmpeg line as follows:
+                echo "Creating mp4 for $camera_output_dir"
+                mkdir -p "./output/$ROSBAG_NAME"
+                # Redirecting ffmpeg's standard input to /dev/null to avoid interference with the loop reading
                 ffmpeg -framerate 50 -pattern_type glob -i "$camera_output_dir/*.jpg" -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p "./output/$ROSBAG_NAME/$base_name.mp4" > /dev/null 2>&1 < /dev/null
 
             done
         fi
-    fi 
+    fi
     sleep 1s
 # done
+echo "Done!"
 done < /tmp/tempfile.txt
 
 rm /tmp/tempfile.txt
-find $OUTPUT_BASE_DIR_DEFAULT -type d -empty -delete # Cleanup Empty Directories
+# find $OUTPUT_BASE_DIR_DEFAULT -type d -empty -delete # Cleanup Empty Directories
