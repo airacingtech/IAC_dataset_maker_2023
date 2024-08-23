@@ -6,12 +6,16 @@ A simple repository with a pipeline to identify and extract important camera dat
 
 Use the following steps to extract data from a rosbag, remove image distortions, choose image segments with vehicles, and create a dataset to be labelled:
 
+*NOTE*: Make sure anaconda is not activated and ros2 is sourced before running the following commands.
+
 1. [multi_extract.sh](multi_extract.sh): This is a bash script to extract images from a rosbag and optionally undistort them during extraction. To set this up for your own rosbag follow the following steps:
-    1. Specify the extraction environment variables in dataset_maker.py](dataset_maker.py):
+    1. Specify the extraction environment variables in the [data_maker.env](data_maker.env) file:
         * DATA_DIR_DEFAULT: Directory where rosbags exist. We will search this directory for db3 files to determine where these rosbags are.
         * VERBOSE_DEFAULT: Set to 1 to get verbose extraction.
         * UNDISTORT_DEFAULT: Set to 1 to get undistortion during the extraction process.
         * CALIB_DIR_DEFAULT: If you choose to undistort, pass the path to the directory with the calibration files.
+        * Frame skip to only extract every nth frame (e.g. 1 will extract every frame, 2 will extract every other frame, etc.)
+        * MAKE_VID_DEFAULT: Set to 0 to skip the video creation step.
 
     2. Make sure the topic names you want to extract exist in the [ros2bag_image_extractor.py](ros2bag_image_extractor.py) in the iterator dictionary.
     3. Source the version of ROS2 you want to use so the script can use the OpenCV bridge
