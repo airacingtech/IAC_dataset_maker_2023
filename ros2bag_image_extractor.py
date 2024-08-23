@@ -308,8 +308,12 @@ while reader.has_next():
         if args.verbose:
             print('Saving ' + output_file_path)
         counter += 1
-        if counter % (1000 * FRAME_SKIP) == 0:
-            print(f"Processed {counter} Images")
+        if counter % (100 * FRAME_SKIP) == 0:
+            print("=========================================================" +
+                  "=======================")
+            print(f"Extracted {extracted_frames} images")
+            print(f"Skipped {skipped_frames} images")
+            print(f"Processed {counter} total images")
 
         if not cv2.imwrite(output_file_path, cv2_msg):
             raise Exception("Could not write image")
