@@ -9,6 +9,8 @@ import argparse
 import yaml
 import subprocess
 from tqdm import tqdm
+from environs import Env
+import time
 
 # ----------------------------- Common Libraries ----------------------------- #
 import numpy as np
@@ -20,6 +22,15 @@ import rosbag2_py
 
 from rclpy.serialization import deserialize_message
 from rosidl_runtime_py.utilities import get_message
+
+# Environment Variables
+# Load Environment Variables
+# Get current directory
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+env = Env()
+env.read_env(os.path.join(CURRENT_DIR, "data_maker.env"))
+FRAME_SKIP = int(env("FRAME_SKIP"))
+print(f"Frame Skip: {FRAME_SKIP}")
 
 # ---------------------------------------------------------------------------- #
 #                                   Functions                                  #
@@ -59,7 +70,7 @@ def undistort(input, distortion_data):
 # ---------------------------------------------------------------------------- #
 #                           Setup & Argument Handling                          #
 # ---------------------------------------------------------------------------- #
-arg_parser  = argparse.ArgumentParser(description='Extracts Images from ROS2 Bags')
+arg_parser = argparse.ArgumentParser(description='Extracts Images from ROS2 Bags')
 
 # ------------------------------- Add Arguments ------------------------------ #
 arg_parser.add_argument('rosbag_file_path', help='Path to rosbag to extract the data from', type=dir_path)
@@ -72,7 +83,7 @@ arg_parser.add_argument('-v', "--verbose", action="store_true")
 # ------------------------------ Parse Arguments ----------------------------- #
 args = arg_parser.parse_args()
 
-OUTPUT_DIR  = args.output_dir
+OUTPUT_DIR = args.output_dir
 
 # Check if output directory exists
 if os.path.exists(OUTPUT_DIR):
@@ -136,9 +147,9 @@ if args.compressed:
         # '/vimba_front_left_center/image/compressed',
         # '/vimba_front_right_center/image/compressed',
         '/vimba_front/image/compressed',
-        '/vimba_left/image/compressed', 
-        '/vimba_right/image/compressed',        
-        '/vimba_rear/image/compressed',       
+        '/vimba_left/image/compressed',
+        '/vimba_right/image/compressed',
+        '/vimba_rear/image/compressed',
         '/vimba_rear/image',
         '/vimba_front_left/image',
         # '/vimba_front_left_center/image',
@@ -159,16 +170,16 @@ else:
 TOPIC_TYPES = reader.get_all_topics_and_types()
 TYPE_MAP = {TOPIC_TYPES[i].name: TOPIC_TYPES[i].type for i in range(len(TOPIC_TYPES))}
 
-iterator = dict()
+topic_iterator = dict()
 
-# ---------------------------- Initialize Iterator --------------------------- #
+# ---------------------------- Initialize topic_iterator --------------------------- #
 
-# Initialize an iterator based on whether or not the topic is in the rosbag
+# Initialize an topic_iterator based on whether or not the topic is in the rosbag
 for t in TYPE_MAP:
     if t in image_topics:
-        iterator[t] = 0
+        topic_iterator[t] = 0
 
-if len(iterator) == 0:
+if len(topic_iterator) == 0:
     print("[script] No Images to extract from this rosbag. Exiting...")
     # If no camera topics are found, close the ROSBAG and return. TODO: Check if ffmpeg is happy about this
     del reader
@@ -232,15 +243,27 @@ def print_num_images(rosbag_file_path: str, image_topics: set):
 # ---------------------------- Extract Images ------------------------------- #
 
 counter = 0
+skipped_frames = 0
+extracted_frames = 0
 
+# Start timer
+start_time = time.time()
+
+print("Extracting Images...")
 while reader.has_next():
-    
     # Read the next message
     topic_name, data, timestamp = reader.read_next()
-    
-    if topic_name in iterator.keys():
-        # Update iterator for this topic
-        iterator[topic_name] += 1
+
+    if topic_name in topic_iterator.keys():
+        # Skip frames if FRAME_SKIP is not 1
+        if topic_iterator[topic_name] % FRAME_SKIP != 0:
+            topic_iterator[topic_name] += 1
+            skipped_frames += 1
+            continue
+
+        extracted_frames += 1
+        # Update topic_iterator for this topic
+        topic_iterator[topic_name] += 1
 
         # Extract message from rosbag
         msg_type = TYPE_MAP[topic_name]
@@ -265,7 +288,7 @@ while reader.has_next():
                 print("Creating Directory: ", output_directory)
             os.mkdir(output_directory)
 
-        output_file_path = os.path.join(output_directory, 'Image' + '_' + '{0:010d}'.format(iterator[topic_name]) + '_' + str(msg.header.stamp.sec) + '_' + str(msg.header.stamp.nanosec) + '.jpg')
+        output_file_path = os.path.join(output_directory, 'Image' + '_' + '{0:010d}'.format(topic_iterator[topic_name]) + '_sec' + str(msg.header.stamp.sec) + '_nsec' + str(msg.header.stamp.nanosec) + '.jpg')
 
         # Undistort Image before Saving
         if args.undistort:
@@ -282,15 +305,22 @@ while reader.has_next():
             cv2_msg = undistort(cv2_msg, distortion_dict[topic_name[1:-6]])
 
         # Save Image
-
         if args.verbose:
             print('Saving ' + output_file_path)
         counter += 1
-        if counter %1000 == 0:
+        if counter % (1000 * FRAME_SKIP) == 0:
             print(f"Processed {counter} Images")
 
         if not cv2.imwrite(output_file_path, cv2_msg):
             raise Exception("Could not write image")
-  
+
 # Close the bag file
 del reader
+
+print("Extraction Done!")
+# End timer
+end_time = time.time()
+print(f"Time taken: {end_time - start_time}")
+print(f"Skipped {skipped_frames} frames")
+print(f"Extracted {extracted_frames} frames")
+print(f"Total Frames: {counter}")
