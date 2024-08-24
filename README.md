@@ -43,15 +43,15 @@ Use the following steps to extract data from a rosbag, remove image distortions,
 
     * Set the source directory and destination directory in the [dataset_maker.py](dataset_maker.py) file:
 
-        ```python
-            SOURCE_DIR = "<ONE OF THE EXTRACTED DATA DIRS FROM STEP 1>"
-            DEST_DIR = "<PATH WHERE DATASET IS TO BE OUTPUT>"
+        ```
+        SOURCE_DIR = "<ONE OF THE EXTRACTED DATA DIRS FROM STEP 1>"
+        DEST_DIR = "<PATH WHERE DATASET IS TO BE OUTPUT>"
         ```
 
     * Now run the python file
 
         ```bash
-            python3 dataset_maker.py
+        python3 dataset_maker.py
         ```
 
 5. Repeat Steps 2 and 3 for the extracted segments of images, to make sure that you have not removed images that had the car but you stopped early, or images that had the car and you started late in your ranges. If you find such discrepancy go back and adjust ranges appropriately and rerun step 4. Repeat this step (step 5), until you no longer make a mistake.

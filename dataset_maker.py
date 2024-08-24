@@ -28,6 +28,9 @@ if env_ranges is None:
 ranges = ast.literal_eval(env_ranges)
 ranges = np.array(ranges)
 
+print("The ranges to keep are: ")
+print(ranges)
+
 # ------------- Create Destination Directory if it does not exist ------------ #
 if not os.path.isdir(DEST_DIR):
     print(f"DEST_DIR ({DEST_DIR}) did not exist so creating it.")
@@ -36,6 +39,7 @@ if not os.path.isdir(DEST_DIR):
 print("Scanning Source Directory: " + SOURCE_DIR + "\n")
 print("This operation may take a while if source directory has too many files...\n\n")
 source_file_list = os.listdir(SOURCE_DIR)
+source_file_list = sorted(source_file_list, key=str.lower)
 print("Scan Done")
 
 count = 0
@@ -56,8 +60,8 @@ for tqdm_iter in tqdm(iter_array):
     source_file = source_file_list[tqdm_iter]
     file_words = source_file.split('_')
 
-    if not os.path.exists(os.path.join(DEST_DIR, source_file)):
-        shutil.copy(SOURCE_DIR+'/'+source_file, DEST_DIR)
+    # if not os.path.exists(os.path.join(SOURCE_DIR, source_file)):
+    shutil.copy(SOURCE_DIR + '/' + source_file, DEST_DIR)
     count += 1
 
 print(count)
