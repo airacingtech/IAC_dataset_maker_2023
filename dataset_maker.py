@@ -1,4 +1,5 @@
 import os 
+import subprocess
 import shutil
 import ast
 import numpy as np
@@ -22,6 +23,8 @@ DEST_DIR = os.path.join(SOURCE_DIR, "filtered")
 env_ranges = os.getenv("RANGES")
 FRAME_RATE = os.getenv("FRAME_RATE")
 
+MAKE_VID_DEFAULT = os.getenv("MAKE_VID_DEFAULT")
+
 if env_ranges is None:
     raise ValueError("RANGES environment variable is not set in the .env file")
 
@@ -35,6 +38,10 @@ print(ranges)
 # ------------- Create Destination Directory if it does not exist ------------ #
 if not os.path.isdir(DEST_DIR):
     print(f"DEST_DIR ({DEST_DIR}) did not exist so creating it.")
+    os.makedirs(DEST_DIR)
+else:
+    print(f"Deleting DEST_DIR ({DEST_DIR}) recreating it.")
+    shutil.rmtree(DEST_DIR)
     os.makedirs(DEST_DIR)
 
 print("Scanning Source Directory: " + SOURCE_DIR + "\n")
@@ -69,3 +76,15 @@ print(count)
 f = open(DEST_DIR + "/num_data.txt", "w+")
 f.write(f"{count}")
 f.close()
+
+# Turn newly filtered extracted images into video
+if MAKE_VID_DEFAULT:
+    video_name = DEST_DIR.split("/")[-3] + '_' + DEST_DIR.split("/")[-2]
+    subprocess.run(
+        ["ffmpeg", "-framerate", FRAME_RATE, "-pattern_type", "glob",
+        "-i", "*.jpg", "-c:v", "libx264", "-profile:v", "high", "-crf", "20", "-pix_fmt", "yuv420p",
+        f"{video_name}.mp4"],
+        cwd=DEST_DIR,
+        capture_output=False,
+        text=True,
+    )

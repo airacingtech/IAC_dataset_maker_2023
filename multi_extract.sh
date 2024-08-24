@@ -193,7 +193,6 @@ while IFS= read -r line; do
     if [[ -d "$OUTPUT_DIR" ]] && [[ -n "$(ls -A "$OUTPUT_DIR")" ]]; then
         # Check if the output directory exists and is not empty
         if [[ $MAKE_VID -eq 1 ]]; then
-
             for camera_output_dir in "$OUTPUT_DIR"/*/; do
                 base_name=$(basename "$camera_output_dir")
                 echo "Creating mp4 for $camera_output_dir"

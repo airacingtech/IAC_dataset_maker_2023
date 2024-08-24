@@ -34,19 +34,15 @@ Use the following steps to extract data from a rosbag, remove image distortions,
     ffmpeg -framerate 50 -pattern_type glob -i '*.jpg' -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p <NAME_AND_PATH_OF_VIDEO_FILE_OUTPUT.mp4>
     ```
 
-3. `[COMPLETELY MANUAL]` Review the video files and note down the timestamps where the vehicle starts being visible and where it stops being visible. Convert the timestamp into seconds format and multiply by 50 (The frame rate we set in the previous step) to get the sequence number for each start and stop position.
+3. `[COMPLETELY MANUAL]` Review the video files and note down the timestamps where the vehicle starts being visible and where it stops being visible. Convert the timestamp into seconds format (this will be RANGES in [data_maker.env](data_maker.env)).
 
     * `For example a time of 1:10 (1 minute and 10 seconds) in the video viewer translates to 70 seconds and a frame ID of 3500 (70*frame_rate, where frame_rate is 50 for our example)`
 
 4. [dataset_maker.py](dataset_maker.py): Next we we will extract these important segments into a seperate folder for final extraction and dataset creation.
-    * Input the sequence numbers from the previous step into the [data_maker.env](data_maker.env) file:
+    * Input the sequence numbers from the previous step into the RANGES [data_maker.env](data_maker.env) file following the format in the example with inclusive ranges that can be parsed as a nested python list.
+    * Set the `FRAME_RATE` variable in [data_maker.env](data_maker.env) to the frame rate used to create the ffmpeg video (default is 20)
 
-    * Set the source directory and destination directory in the [dataset_maker.py](dataset_maker.py) file:
-
-        ```
-        SOURCE_DIR = "<ONE OF THE EXTRACTED DATA DIRS FROM STEP 1>"
-        DEST_DIR = "<PATH WHERE DATASET IS TO BE OUTPUT>"
-        ```
+    * Set the `SOURCE_DIR` (the folder containing the images you want to filter) in the [dataset_maker.py](dataset_maker.py) file:
 
     * Now run the python file
 
