@@ -2,11 +2,19 @@
 
 A simple repository with a pipeline to identify and extract important camera data to be labelled.
 
+## Pre-requisites
+
+1. Install ffmpeg:
+
+    ```bash
+    sudo apt-get install ffmpeg
+    ```
+
 ## Dataset Pipeline
 
 Use the following steps to extract data from a rosbag, remove image distortions, choose image segments with vehicles, and create a dataset to be labelled:
 
-*NOTE*: Make sure anaconda is not activated and ros2 is sourced before running the following commands.
+*NOTE*: Make sure anaconda is not activated and ros2 is sourced before (ROS2 is sourced by default in [multi_extract.sh](multi_extract.sh)) running the following commands.
 
 1. [multi_extract.sh](multi_extract.sh): This is a bash script to extract images from a rosbag and optionally undistort them during extraction. To set this up for your own rosbag follow the following steps:
     1. Specify the extraction environment variables in the [data_maker.env](data_maker.env) file:

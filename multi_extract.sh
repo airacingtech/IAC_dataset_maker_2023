@@ -197,10 +197,9 @@ while IFS= read -r line; do
             for camera_output_dir in "$OUTPUT_DIR"/*/; do
                 base_name=$(basename "$camera_output_dir")
                 echo "Creating mp4 for $camera_output_dir"
-                mkdir -p "./output/$ROSBAG_NAME"
+                mkdir -p "./videos/$ROSBAG_NAME"
                 # Redirecting ffmpeg's standard input to /dev/null to avoid interference with the loop reading
                 ffmpeg -framerate 50 -pattern_type glob -i "$camera_output_dir/*.jpg" -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p "./output/$ROSBAG_NAME/$base_name.mp4" > /dev/null 2>&1 < /dev/null
-
             done
         fi
     fi
