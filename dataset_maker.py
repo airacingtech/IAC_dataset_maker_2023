@@ -20,13 +20,14 @@ if SOURCE_DIR is None:
 DEST_DIR = os.path.join(SOURCE_DIR, "filtered")
 
 env_ranges = os.getenv("RANGES")
+FRAME_RATE = os.getenv("FRAME_RATE")
 
 if env_ranges is None:
     raise ValueError("RANGES environment variable is not set in the .env file")
 
 # Convert the environment variable to a numpy array
 ranges = ast.literal_eval(env_ranges)
-ranges = np.array(ranges)
+ranges = np.array(ranges) * np.double(FRAME_RATE)
 
 print("The ranges to keep are: ")
 print(ranges)
