@@ -133,7 +133,7 @@ while IFS= read -r line; do
     # ---------------------------------------------------------------------------- #
     #                           NOTE: SPECIFY OUTPUT DIR                           #
     # ---------------------------------------------------------------------------- #
-    OUTPUT_DIR="$OUTPUT_BASE_DIR$ROSBAG_NAME"
+    OUTPUT_DIR="${OUTPUT_BASE_DIR}${ROSBAG_NAME}_${OUTPUT_NAME_SUFFIX}"
     
     # ------------------- NO CHANGES REQUIRED BEYOND THIS LINE ------------------- #
 

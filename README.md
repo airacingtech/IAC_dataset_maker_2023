@@ -6,6 +6,8 @@ A simple repository with a pipeline to identify and extract important camera dat
 
 Use the following steps to extract data from a rosbag, remove image distortions, choose image segments with vehicles, and create a dataset to be labelled:
 
+First create a copy of `example.env` and rename it to `data_maker.env`. This will be the file that contains all the environment variables for the pipeline.
+
 *NOTE*: Make sure anaconda is not activated and ros2 is sourced before running the following commands.
 
 1. [multi_extract.sh](multi_extract.sh): This is a bash script to extract images from a rosbag and optionally undistort them during extraction. To set this up for your own rosbag follow the following steps:
