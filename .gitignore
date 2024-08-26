@@ -130,3 +130,6 @@ dmypy.json
 
 # Ignore output folder
 output/
+
+# Ignore env file
+data_maker.env
