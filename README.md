@@ -26,7 +26,7 @@ Use the following steps to extract data from a rosbag, remove image distortions,
         ```
 
     5. Now sit back and wait until the extraction is complete. This process can take and hour or longer depending on the size of the rosbag.
-    6. `[IMPORTANT PLEASE READ]` By setting the variable MAKE_VID_DEFAULT in dataset_maker.py](dataset_maker.py), you can skip step 2 in the first pass.
+    6. `[IMPORTANT PLEASE READ]` By setting the variable MAKE_VID_DEFAULT in [dataset_maker.py](dataset_maker.py), you can skip step 2 in the first pass.
 
 2. This step can be accomplished by setting Convert the extracted image data to a video to view the segments that contain the car. This is important to reduce the dataset size that is sent to an external vendor for labelling, saving cost and time. Use the following command in the OUTPUT_DIR printed by the previous command:
 

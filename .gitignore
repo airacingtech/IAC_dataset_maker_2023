@@ -133,3 +133,6 @@ output/
 
 # Ignore env file
 data_maker.env
+
+# Ignore vscode
+.vscode
