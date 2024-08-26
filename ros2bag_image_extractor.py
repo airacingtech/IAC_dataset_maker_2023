@@ -155,7 +155,7 @@ if args.compressed:
         # '/vimba_front_left_center/image',
         '/vimba_front/image',
         # '/vimba_right_center/image',
-        '/vimba_right/image'          
+        '/vimba_right/image'
     }
 else:
     image_topics = {
@@ -164,7 +164,7 @@ else:
         '/vimba_front/image',
         # '/vimba_front_left_center/image',
         # '/vimba_front_right_center/image',
-        '/vimba_right/image'          
+        '/vimba_right/image'
     }
 
 TOPIC_TYPES = reader.get_all_topics_and_types()
@@ -327,4 +327,4 @@ end_time = time.time()
 print(f"Time taken: {end_time - start_time}")
 print(f"Skipped {skipped_frames} frames")
 print(f"Extracted {extracted_frames} frames")
-print(f"Total Frames: {counter}")
+print(f"Total Frames: {skipped_frames + extracted_frames}")

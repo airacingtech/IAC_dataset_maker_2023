@@ -22,7 +22,7 @@ DEST_DIR = os.path.join(SOURCE_DIR, "filtered")
 INV_DEST_DIR = os.path.join(SOURCE_DIR, "inverse_filtered")
 
 env_ranges = os.getenv("RANGES")
-FRAME_RATE = os.getenv("FRAME_RATE")
+FRAME_RATE = np.double(os.getenv("FRAME_RATE"))
 
 MAKE_VID_DEFAULT = os.getenv("MAKE_VID_DEFAULT")
 
@@ -31,28 +31,23 @@ if env_ranges is None:
 
 # Convert the environment variable to a numpy array
 ranges = ast.literal_eval(env_ranges)
-ranges = np.array(ranges) * np.double(FRAME_RATE)
+ranges = np.array(ranges) * FRAME_RATE
 
 print("The ranges to keep are: ")
 print(ranges)
 
 # ------------- Create Destination Directories if they do not exist ------------ #
-if not os.path.isdir(DEST_DIR):
-    print(f"DEST_DIR ({DEST_DIR}) did not exist so creating it.")
-    os.makedirs(DEST_DIR)
-else:
-    print(f"Deleting DEST_DIR ({DEST_DIR}) recreating it.")
-    shutil.rmtree(DEST_DIR)
-    os.makedirs(DEST_DIR)
+def create_dir_if_not_exists(dir):
+    if not os.path.isdir(dir):
+        print(f"{dir} did not exist so creating it.")
+        os.makedirs(dir)
+    else:
+        print(f"Deleting {dir} recreating it.")
+        shutil.rmtree(dir)
+        os.makedirs(dir)
 
-if not os.path.isdir(INV_DEST_DIR):
-    print(f"INV_DEST_DIR ({INV_DEST_DIR}) did not exist so creating it.")
-    os.makedirs(INV_DEST_DIR)
-else:
-    print(f"Deleting INV_DEST_DIR ({INV_DEST_DIR}) recreating it.")
-    shutil.rmtree(INV_DEST_DIR)
-    os.makedirs(INV_DEST_DIR)
-
+create_dir_if_not_exists(DEST_DIR)
+create_dir_if_not_exists(INV_DEST_DIR)
 # ------------- Get the source directory files ------------ #
 
 print("Scanning Source Directory: " + SOURCE_DIR + "\n")
@@ -75,8 +70,15 @@ def get_inverse_ranges(ranges, total_length):
         current_start = end + 1
 
     # Handle the case after the last range
-    if current_start < total_length:
-        inverse_ranges.append([current_start, total_length])
+    dist_from_end = total_length - current_start
+    if dist_from_end > 0:
+        # We don't want to add inverse frames that are less than a second of video time as
+        # the normal range could be set to go to the end of the video (130/130) but the inverse
+        # will have a couple of extra frames to work with after the last range (130/130 + 1/130)
+        # which the user can't control. So we will only add the inverse range if it is less than
+        # a second of video time.
+        if dist_from_end < FRAME_RATE:
+            inverse_ranges.append([current_start, total_length])
 
     return np.array(inverse_ranges)
 
@@ -126,23 +128,33 @@ f.close()
 # Turn newly filtered extracted images into video
 if MAKE_VID_DEFAULT:
     # Normal Filter
+    VIDEO_DEST_DIR = DEST_DIR + "/video"
+    # Make video directory if it does not exist
+    create_dir_if_not_exists(VIDEO_DEST_DIR)
     video_name = DEST_DIR.split("/")[-3] + '_' + DEST_DIR.split("/")[-2]
     subprocess.run(
-        ["ffmpeg", "-framerate", FRAME_RATE, "-pattern_type", "glob",
+        ["ffmpeg", "-framerate", str(FRAME_RATE), "-pattern_type", "glob",
         "-i", "*.jpg", "-c:v", "libx264", "-profile:v", "high", "-crf", "20", "-pix_fmt", "yuv420p",
         f"{video_name}.mp4"],
         cwd=DEST_DIR,
         capture_output=False,
         text=True,
     )
+    # Move video to the video directory
+    shutil.move(DEST_DIR + f"/{video_name}.mp4", VIDEO_DEST_DIR)
 
     # Inverted Filter
+    INV_VIDEO_DEST_DIR = INV_DEST_DIR + "/video"
+    # Make video directory if it does not exist
+    create_dir_if_not_exists(INV_VIDEO_DEST_DIR)
     video_name = INV_DEST_DIR.split("/")[-3] + '_inverted_' + INV_DEST_DIR.split("/")[-2]
     subprocess.run(
-        ["ffmpeg", "-framerate", FRAME_RATE, "-pattern_type", "glob",
+        ["ffmpeg", "-framerate", str(FRAME_RATE), "-pattern_type", "glob",
         "-i", "*.jpg", "-c:v", "libx264", "-profile:v", "high", "-crf", "20", "-pix_fmt", "yuv420p",
         f"{video_name}.mp4"],
         cwd=INV_DEST_DIR,
         capture_output=False,
         text=True,
     )
+    # Move video to the video directory
+    shutil.move(INV_DEST_DIR + f"/{video_name}.mp4", VIDEO_DEST_DIR)

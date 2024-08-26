@@ -149,7 +149,7 @@ while IFS= read -r line; do
     # ------------------ Begin Extraction Based on User Setting ------------------ #
     cd "$root_dir"
     
-    if [ $VERBOSE -arangeeq 1 ]; then
+    if [ $VERBOSE -eq 1 ]; then
         if [ $UNDISTORT -eq 1 ]; then
             if [ $USE_COMPRESSED -eq 1 ]; then
                 echo "Running: python3 ros2bag_image_extractor.py $line $OUTPUT_DIR -vucp $CALIB_DIR"
